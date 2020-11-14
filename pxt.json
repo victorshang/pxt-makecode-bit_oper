@@ -1,5 +1,5 @@
 {
-    "name": "pxt-makecode-bit_oper",
+    "name": "makecode bit_oper",
     "version": "0.0.0",
     "description": "",
     "dependencies": {
@@ -19,5 +19,5 @@
     "supportedTargets": [
         "microbit"
     ],
-    "preferredEditor": "blocksprj"
+    "preferredEditor": "tsprj"
 }
