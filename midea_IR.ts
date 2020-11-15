@@ -1,96 +1,105 @@
 enum mode_code {
-    Auto_mode = 2,
-    Cold_mode = 0, 
-    Heat_mode = 3, 
-    Dehum_mode = 1,     
-    Wind_mode = 1,
+    Auto = 2,
+    Cold = 0, 
+    Heat = 3, 
+    Dehum = 1,     
+    Wind = 1,
 }
 
 enum wind_code {
-    Auto_wind = 5,  
-    Low_wind = 4, 
-    Mid_wind = 2, 
-    High_wind = 1, 
-    Fixed_wind = 0
+    Auto = 5,  
+    Low = 4, 
+    Mid = 2, 
+    High = 1, 
+    Fixed = 0
 }
 
 enum tmp_code {
-    Tmp_17=0,
-    Tmp_18=1,
-    Tmp_19=3,
-    Tmp_20=2,
-    Tmp_21=6,
-    Tmp_22=7,
-    Tmp_23=5,
-    Tmp_24=4,
-    Tmp_25=12,
-    Tmp_26=13,
-    Tmp_27=9,
-    Tmp_28=8,
-    Tmp_29=10,
-    Tmp_30=11,
-    Tmp_undefine=14,
+    T17=0,
+    T18=1,
+    T19=3,
+    T20=2,
+    T21=6,
+    T22=7,
+    T23=5,
+    T24=4,
+    T25=12,
+    T26=13,
+    T27=9,
+    T28=8,
+    T29=10,
+    T30=11,
+    Tundef=14,
 }
 enum minute_code{
-    minute_00=0,
-    minute_30=2
+    m_00=0,
+    m_30=2
 }
 enum hour_code {
-    hour_1=3,
-    hour_2=7,
-    hour_3=11,
-    hour_4=15,
-    hour_5=19,
-    hour_6=23,
-    hour_7=27,
-    hour_8=31,
-    hour_9=35,
-    hour_10=39,
-    hour_11=43,
-    hour_12=47,
-    hour_13=51,
-    hour_14=55,
-    hour_15=59,
-    hour_16=63,
-    hour_17=67,
-    hour_18=71,
-    hour_19=75,
-    hour_20=79,
-    hour_21=83,
-    hour_22=87,
-    hour_23=91,
-    hour_24=95,
+    h_1=3,
+    h_2=7,
+    h_3=11,
+    h_4=15,
+    h_5=19,
+    h_6=23,
+    h_7=27,
+    h_8=31,
+    h_9=35,
+    h_10=39,
+    h_11=43,
+    h_12=47,
+    h_13=51,
+    h_14=55,
+    h_15=59,
+    h_16=63,
+    h_17=67,
+    h_18=71,
+    h_19=75,
+    h_20=79,
+    h_21=83,
+    h_22=87,
+    h_23=91,
+    h_24=95,
 }
-
 let A_code= 178
 
 namespace midea_ir{   
     /**
     * 返回定时开机码
     */
-    //% block="开机码 %hour小时%minute分钟后,模式:%mode=Cold_mode,温度:%tmp,风量:%wind=High_wind"
-    export function getTimeingOpenCode(hour:hour_code=hour_code.hour_1,minute:minute_code=minute_code.minute_30,mode:mode_code=mode_code.Heat_mode, tmp:tmp_code=tmp_code.Tmp_24, wind:wind_code=wind_code.High_wind):Array<number>{
+    //% block="%hour小时%minute分钟后开,模式:%mode=Cold_mode,温度:%tmp,风量:%wind=High_wind"
+    export function getTimeingOpenCode(hour:hour_code,minute:minute_code,mode:mode_code,tmp:tmp_code, wind:wind_code):Array<number>{
         let result =[0b1011001001001101,0,0]
         let codeB=getOpenCodeB(wind) 
         let codeC=getOpenCodeC(tmp, mode)
         result[1]=((codeB * 256) & 0xff00) + (bitoperation.getInverse(codeB) & 0x00ff)
-        if(mode==mode_code.Cold_mode){
+        if(mode==mode_code.Cold){
             result[2]=((codeC * 256) & 0xff00) + ((hour+minute+0x80) & 0x00ff)
         }else{
             result[2]=((codeC * 256) & 0xff00) + ((hour+minute) & 0x00ff)
         }
         return result
     }
-
     /**
-    * 返回取消定时
+    * 返回定时关机码
     */
-    //% block="取消定时码"
+    //% block="%hour小时%minute分钟后关,模式:%mode=Cold_mode,温度:%tmp,风量:%wind=High_wind"
+    export function getTimeingCloseCode(hour:hour_code,minute:minute_code,mode:mode_code,tmp:tmp_code, wind:wind_code):Array<number>{
+        let result =[0b1011001001001101,0,0]
+        let codeB=(getOpenCodeB(wind) & 0xe0) + ((hour+minute) & 0x1f)
+        let codeC=getOpenCodeC(tmp, mode) + ((hour+minute) & 0x60)
+        result[1]=((codeB * 256) & 0xff00) + (bitoperation.getInverse(codeB) & 0x00ff)
+        result[2]=((codeC * 256) & 0xff00) + 0x00ff
+        return result
+    }
+    /**
+    * 返回取消定时开机
+    */
+    //% block="取消定时开机码"
     export function getCancleCode():Array<number>{
         let result =[0b1011001001001101,0b0111101110000100,0b1110000000011111]
         return result
     }
-
     /**
     * 返回关机码
     */
@@ -103,8 +112,8 @@ namespace midea_ir{
     * 返回开机码数据码
     * 开机码数据码式为： A码+A码反码+B码+B码反码+C码+C码反码
     */
-    //% block="开机码，模式:%mode=Cold_mode,温度:%tmp,风量:%wind=High_wind"
-    export function getOpenCode(mode:mode_code=mode_code.Heat_mode, tmp:tmp_code=tmp_code.Tmp_24, wind:wind_code=wind_code.High_wind):Array<number>{
+    //% block="模式:%mode=Cold_mode,温度:%tmp,风量:%wind=High_wind"
+    export function getOpenCode(mode:mode_code=mode_code.Heat, tmp:tmp_code=tmp_code.T24, wind:wind_code=wind_code.High):Array<number>{
         let result =[0b1011001001001101,0,0]
         let codeB=getOpenCodeB(wind)
         let codeC=getOpenCodeC(tmp, mode)
