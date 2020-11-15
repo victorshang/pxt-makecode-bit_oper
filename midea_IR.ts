@@ -37,27 +37,40 @@ let A_code= 178
 namespace midea_ir{   
 
     /**
-    * 返回开机码
+    * 返回关机码
     */
-    //% block="开机码，模式：%mode=Cold_mode 温度:%tmp=Tmp_24 风量:%wind=High_wind"
-    export function getOpenCode(mode:mode_code, tmp:tmp_code, wind:wind_code):string{
-        let result="1011001001001101"
+    //% block="关机码"
+    export function getCloseCode():Array<number>{
+        let result =[0b1011001001001101,0b0111101110000100,0b1110000000011111]
+        return result
+    }
+    /**
+    * 返回开机码数据码
+    * 开机码数据码式为： A码+A码反码+B码+B码反码+C码+C码反码
+    */
+    //% block="开机码，模式：%mode=Cold_mode 温度:%tmp 风量:%wind=High_wind"
+
+    export function getOpenCode(mode:mode_code=mode_code.Heat_mode, tmp:tmp_code=tmp_code.Tmp_24, wind:wind_code=wind_code.High_wind):Array<number>{
+        let result =[0b1011001001001101,0,0]
         let codeB=getOpenCodeB(wind)
         let codeC=getOpenCodeC(tmp, mode)
+        result[1]=((codeB * 256) & 0xff00) + (bitoperation.getInverse(codeB) & 0x00ff)
+        result[2]=((codeC * 256) & 0xff00) + (bitoperation.getInverse(codeC) & 0x00ff)
+/**
         for(let i = 7; i >= 0; i--) {
-            result +=  convertToText(bitoperation.getBit(codeB, i))
+            result[1] +=  convertToText(bitoperation.getBit(codeB, i))
         }      
         for(let i = 7; i >= 0; i--){
-            result+=convertToText(bitoperation.getBit(bitoperation.getInverse(codeB), i))
+            result[1]+=convertToText(bitoperation.getBit(, i))
         }
         for(let i = 7; i >= 0; i--){
-            result+=convertToText(bitoperation.getBit(codeC, i))
+            result[2]+=convertToText(bitoperation.getBit(codeC, i))
         }
         for(let i = 7; i >= 0; i--){
-            result+=convertToText(bitoperation.getBit(bitoperation.getInverse(codeC), i))
+            result[2]+=convertToText(bitoperation.getBit(bitoperation.getInverse(codeC), i))
         }
-        return result
-        
+         */
+        return result   
     }
 
 
@@ -83,5 +96,116 @@ namespace midea_ir{
     //% block="C码:%tmp,%mode"
     export function getOpenCodeC(tmp:tmp_code,mode:mode_code):number{
         return (tmp << 4) | (mode << 2)
+    }
+    let irPin = DigitalPin.P1
+
+    /**
+    * 设置IR发射器引脚
+    */
+    //% block="IR发射器引脚:%ir_pin=DigitalPin"
+    export function setIrPin(ir_pin:DigitalPin){
+        irPin = ir_pin
+    }
+
+    function ledOn (d: number) {
+        while (d > 32) {
+            pins.digitalWritePin(irPin, 1)
+            control.waitMicros(2)
+            pins.digitalWritePin(irPin, 0)
+            d = d - 32
+        }
+    }
+    function ledOff (d: number) {
+       control.waitMicros(d)
+    }
+    /**
+    * L码
+    */
+    function LCode(){
+        ledOn(4500)
+        ledOff(4500)
+    }
+    /**
+    * S码
+    */
+    function SCode(){
+        ledOn(544)
+        ledOff(5220)
+    }
+    /**
+    * E码
+    */
+    function EndCode(){
+        ledOn(544)
+    }
+    /**
+    * 0
+    */
+    function ZERO() {
+        ledOn(544)
+        ledOff(544)
+    }
+    /**
+    * 1
+    */
+    function ONE() {
+        ledOn(544)
+        ledOff(1587)
+    }
+
+     /**
+    * 发送数据码
+    * 发送格式为： L码+数据码+S码+L码+数据码+E码
+    */
+    //% block="发送数据:%data_str"
+    export function sendCode(data_arr:Array<number>){
+        let len = 16
+        let codeA=data_arr[0]
+        let codeB=data_arr[1]
+        let codeC=data_arr[2]
+        LCode()
+        let mask=0x8000
+        for(let j=0;j<3;j++){
+            mask=0x8000
+            let data=data_arr[j]
+            for(let i=0;i<len;i++){
+                if (( data & mask)==0){
+                    ZERO()
+                }else{
+                    ONE()
+                }
+                mask=mask >> 1
+            }
+        }
+        SCode()
+        LCode()
+        mask=0x8000
+        for(let i=0;i<len;i++){
+            if ((codeA & mask)==0){
+                ZERO()
+            }else{
+                ONE()
+            }
+            mask=mask >> 1
+        }
+        mask=0x8000
+        for(let i=0;i<len;i++){
+            if ((codeB & mask)==0){
+                ZERO()
+            }else{
+                ONE()
+            }
+            mask=mask >> 1
+        }
+        mask=0x8000
+        for(let i=0;i<len;i++){
+            if ((codeC & mask)==0){
+                ZERO()
+            }else{
+                ONE()
+            }
+            mask=mask >> 1
+        }
+        EndCode()
     }
 }

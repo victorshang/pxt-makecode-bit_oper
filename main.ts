@@ -1,6 +1,7 @@
-basic.forever(function () {
-    serial.writeString("A:")
-    serial.writeString(midea_ir.getOpenCode(mode_code.Heat_mode, tmp_code.Tmp_25, wind_code.Mid_wind))
-    basic.pause(2000)
-    serial.writeLine("")
+input.onButtonPressed(Button.A, function () {
+    midea_ir.sendCode(midea_ir.getCloseCode())
 })
+input.onButtonPressed(Button.B, function () {
+    midea_ir.sendCode(midea_ir.getOpenCode(mode_code.Heat_mode, tmp_code.Tmp_27, wind_code.Low_wind))
+})
+midea_ir.setIrPin(DigitalPin.P2)
