@@ -86,8 +86,8 @@ namespace midea_ir{
     //% block="%hour小时%minute分钟后关,模式:%mode=Cold_mode,温度:%tmp,风量:%wind=High_wind"
     export function getTimeingCloseCode(hour:hour_code,minute:minute_code,mode:mode_code,tmp:tmp_code, wind:wind_code):Array<number>{
         let result =[0b1011001001001101,0,0]
-        let codeB=(getOpenCodeB(wind) & 0xe0) + ((hour+minute) & 0x1f)
-        let codeC=getOpenCodeC(tmp, mode) + ((hour+minute) & 0x60)
+        let codeB=(getOpenCodeB(wind) & 0x00e0) | ((hour+minute) & 0x001f)
+        let codeC=getOpenCodeC(tmp, mode) & 0x00fc | (((hour+minute)>> 5) & 0x0003)
         result[1]=((codeB * 256) & 0xff00) + (bitoperation.getInverse(codeB) & 0x00ff)
         result[2]=((codeC * 256) & 0xff00) + 0x00ff
         return result
