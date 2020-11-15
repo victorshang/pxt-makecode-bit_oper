@@ -31,10 +31,65 @@ enum tmp_code {
     Tmp_30=11,
     Tmp_undefine=14,
 }
+enum minute_code{
+    minute_00=0,
+    minute_30=2
+}
+enum hour_code {
+    hour_1=3,
+    hour_2=7,
+    hour_3=11,
+    hour_4=15,
+    hour_5=19,
+    hour_6=23,
+    hour_7=27,
+    hour_8=31,
+    hour_9=35,
+    hour_10=39,
+    hour_11=43,
+    hour_12=47,
+    hour_13=51,
+    hour_14=55,
+    hour_15=59,
+    hour_16=63,
+    hour_17=67,
+    hour_18=71,
+    hour_19=75,
+    hour_20=79,
+    hour_21=83,
+    hour_22=87,
+    hour_23=91,
+    hour_24=95,
+}
 
 let A_code= 178
 
 namespace midea_ir{   
+    /**
+    * 返回定时开机码
+    */
+    //% block="开机码 %hour小时%minute分钟后,模式:%mode=Cold_mode,温度:%tmp,风量:%wind=High_wind"
+    export function getTimeingOpenCode(hour:hour_code=hour_code.hour_1,minute:minute_code=minute_code.minute_30,mode:mode_code=mode_code.Heat_mode, tmp:tmp_code=tmp_code.Tmp_24, wind:wind_code=wind_code.High_wind):Array<number>{
+        let result =[0b1011001001001101,0,0]
+        let codeB=getOpenCodeB(wind) 
+        let codeC=getOpenCodeC(tmp, mode)
+        result[1]=((codeB * 256) & 0xff00) + (bitoperation.getInverse(codeB) & 0x00ff)
+        if(mode==mode_code.Cold_mode){
+            result[2]=((codeC * 256) & 0xff00) + ((hour+minute+0x80) & 0x00ff)
+        }else{
+            result[2]=((codeC * 256) & 0xff00) + ((hour+minute) & 0x00ff)
+        }
+        return result
+    }
+
+    /**
+    * 返回取消定时
+    */
+    //% block="取消定时码"
+    export function getCancleCode():Array<number>{
+        let result =[0b1011001001001101,0b0111101110000100,0b1110000000011111]
+        return result
+    }
 
     /**
     * 返回关机码
@@ -48,28 +103,13 @@ namespace midea_ir{
     * 返回开机码数据码
     * 开机码数据码式为： A码+A码反码+B码+B码反码+C码+C码反码
     */
-    //% block="开机码，模式：%mode=Cold_mode 温度:%tmp 风量:%wind=High_wind"
-
+    //% block="开机码，模式:%mode=Cold_mode,温度:%tmp,风量:%wind=High_wind"
     export function getOpenCode(mode:mode_code=mode_code.Heat_mode, tmp:tmp_code=tmp_code.Tmp_24, wind:wind_code=wind_code.High_wind):Array<number>{
         let result =[0b1011001001001101,0,0]
         let codeB=getOpenCodeB(wind)
         let codeC=getOpenCodeC(tmp, mode)
         result[1]=((codeB * 256) & 0xff00) + (bitoperation.getInverse(codeB) & 0x00ff)
         result[2]=((codeC * 256) & 0xff00) + (bitoperation.getInverse(codeC) & 0x00ff)
-/**
-        for(let i = 7; i >= 0; i--) {
-            result[1] +=  convertToText(bitoperation.getBit(codeB, i))
-        }      
-        for(let i = 7; i >= 0; i--){
-            result[1]+=convertToText(bitoperation.getBit(, i))
-        }
-        for(let i = 7; i >= 0; i--){
-            result[2]+=convertToText(bitoperation.getBit(codeC, i))
-        }
-        for(let i = 7; i >= 0; i--){
-            result[2]+=convertToText(bitoperation.getBit(bitoperation.getInverse(codeC), i))
-        }
-         */
         return result   
     }
 
@@ -78,7 +118,7 @@ namespace midea_ir{
     * 返回A码
     */
     //% block="A码"
-    export function getOpenCodeA():number{
+    function getOpenCodeA():number{
         return A_code
     }
 
@@ -86,7 +126,7 @@ namespace midea_ir{
     * 返回B码
     */
     //% block="B码:%win"
-    export function getOpenCodeB(win:wind_code):number{
+    function getOpenCodeB(win:wind_code):number{
         return (win << 5) | 0x1F
     }
 
@@ -94,7 +134,7 @@ namespace midea_ir{
     * 返回C码
     */
     //% block="C码:%tmp,%mode"
-    export function getOpenCodeC(tmp:tmp_code,mode:mode_code):number{
+    function getOpenCodeC(tmp:tmp_code,mode:mode_code):number{
         return (tmp << 4) | (mode << 2)
     }
     let irPin = DigitalPin.P1
