@@ -61,9 +61,18 @@ enum hour_code {
     h_23=91,
     h_24=95,
 }
-let A_code= 178
-
 namespace midea_ir{   
+    let A_code= 178;
+    let waitCorrection=0;
+    let irsend_Pin=AnalogPin.P1;
+    let NEC_L_MARK = 4500;
+    let NEC_L_MARK_SPACE = 4500;
+    let NEC_S_MARK = 560;
+    let NEC_S_MARK_SPACE = 5220;
+    let NEC_BIT_MARK = 560;
+    let NEC_HIGH_SPACE = 1690;
+    let NEC_LOW_SPACE = 560;
+
     /**
     * 返回定时开机码
     */
@@ -124,6 +133,40 @@ namespace midea_ir{
 
 
     /**
+    * 初始化IR
+    */
+    //% block="初始化IR发射器引脚:%ir_pin=AnalogPin"
+    export function initIR(ir_pin:AnalogPin):void
+     // Measure the time we need for a minimal bit (analogWritePin and waitMicros)
+      {
+        irsend_Pin=ir_pin;
+        pins.analogWritePin(irsend_Pin, 0);
+        pins.analogSetPeriod(irsend_Pin, 26);
+        const start = input.runningTimeMicros();
+        const runs = 3200;
+        for (let i = 0; i < runs; i++) {
+          transmitBit(1, 1);
+        }
+        const end = input.runningTimeMicros();
+        waitCorrection = Math.idiv(end - start - runs * 2, runs * 2);
+        basic.showNumber(waitCorrection);
+        NEC_L_MARK -= waitCorrection;
+        NEC_L_MARK_SPACE -= waitCorrection;
+        NEC_S_MARK -= waitCorrection;
+        NEC_S_MARK_SPACE -= waitCorrection;
+        NEC_BIT_MARK -= waitCorrection;
+        NEC_HIGH_SPACE -= waitCorrection;
+        NEC_LOW_SPACE -= waitCorrection;    
+      }
+    
+    function transmitBit(highMicros: number, lowMicros: number): void {
+      pins.analogWritePin(irsend_Pin, 511);
+      control.waitMicros(highMicros);
+      pins.analogWritePin(irsend_Pin, 1);
+      control.waitMicros(lowMicros);
+    }
+
+    /**
     * 返回A码
     */
     //% block="A码"
@@ -146,60 +189,36 @@ namespace midea_ir{
     function getOpenCodeC(tmp:tmp_code,mode:mode_code):number{
         return (tmp << 4) | (mode << 2)
     }
-    let irPin = DigitalPin.P1
 
-    /**
-    * 设置IR发射器引脚
-    */
-    //% block="IR发射器引脚:%ir_pin=DigitalPin"
-    export function setIrPin(ir_pin:DigitalPin){
-        irPin = ir_pin
-    }
-
-    function ledOn (d: number) {
-        while (d > 32) {
-            pins.digitalWritePin(irPin, 1)
-            control.waitMicros(2)
-            pins.digitalWritePin(irPin, 0)
-            d = d - 32
-        }
-    }
-    function ledOff (d: number) {
-       control.waitMicros(d)
-    }
     /**
     * L码
     */
     function LCode(){
-        ledOn(4500)
-        ledOff(4500)
+       transmitBit(NEC_L_MARK, NEC_L_MARK_SPACE);
     }
     /**
     * S码
     */
     function SCode(){
-        ledOn(544)
-        ledOff(5220)
+        transmitBit(NEC_S_MARK, NEC_S_MARK_SPACE);
     }
     /**
     * E码
     */
     function EndCode(){
-        ledOn(544)
+         transmitBit(NEC_BIT_MARK, 0);
     }
     /**
     * 0
     */
     function ZERO() {
-        ledOn(544)
-        ledOff(544)
+        transmitBit(NEC_BIT_MARK, NEC_LOW_SPACE);
     }
     /**
     * 1
     */
     function ONE() {
-        ledOn(544)
-        ledOff(1587)
+        transmitBit(NEC_BIT_MARK, NEC_HIGH_SPACE);
     }
 
      /**
@@ -215,7 +234,6 @@ namespace midea_ir{
         LCode()
         let mask=0x8000
         for(let j=0;j<3;j++){
-            mask=0x8000
             let data=data_arr[j]
             for(let i=0;i<len;i++){
                 if (( data & mask)==0){
@@ -225,35 +243,21 @@ namespace midea_ir{
                 }
                 mask=mask >> 1
             }
+            mask=0x8000
         }
         SCode()
         LCode()
-        mask=0x8000
-        for(let i=0;i<len;i++){
-            if ((codeA & mask)==0){
-                ZERO()
-            }else{
-                ONE()
+        for(let j=0;j<3;j++){
+            let data=data_arr[j]
+            for(let i=0;i<len;i++){
+                if (( data & mask)==0){
+                    ZERO()
+                }else{
+                    ONE()
+                }
+                mask=mask >> 1
             }
-            mask=mask >> 1
-        }
-        mask=0x8000
-        for(let i=0;i<len;i++){
-            if ((codeB & mask)==0){
-                ZERO()
-            }else{
-                ONE()
-            }
-            mask=mask >> 1
-        }
-        mask=0x8000
-        for(let i=0;i<len;i++){
-            if ((codeC & mask)==0){
-                ZERO()
-            }else{
-                ONE()
-            }
-            mask=mask >> 1
+            mask=0x8000
         }
         EndCode()
     }
