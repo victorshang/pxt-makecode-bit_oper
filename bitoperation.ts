@@ -1,3 +1,10 @@
+/**
+ * MakeCode extension for bit game.gameOver() 
+ * update: 2020-11-17
+ * version:1.00
+ */
+//% color=#972145 icon="\u2702" block="BitOper"
+
 namespace bitoperation {
     /**
     * 返回data中index位的数据（1或0）

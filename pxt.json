@@ -10,7 +10,8 @@
         "main.blocks",
         "main.ts",
         "bitoperation.ts",
-        "midea_IR.ts"
+        "meidea.ts",
+        "airmate.ts"
     ],
     "testFiles": [
         "test.ts"

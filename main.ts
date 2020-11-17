@@ -1,4 +1,9 @@
 input.onButtonPressed(Button.A, function () {
-    midea_ir.sendCode(midea_ir.getOpenCode(mode_code.Cold, tmp_code.T23, wind_code.Low))
+    meidea_ir.sendCode(meidea_ir.getOpenCode(mode_code.Auto, tmp_code.T17, wind_code.Auto))
 })
-midea_ir.initIR(AnalogPin.P1)
+input.onButtonPressed(Button.B, function () {
+    meidea_ir.sendCode(meidea_ir.getCloseCode())
+})
+meidea_ir.initIR(AnalogPin.P2)
+airmate_ir.initIR(AnalogPin.P0)
+airmate_ir.sendCode(fan_code.Minus)
