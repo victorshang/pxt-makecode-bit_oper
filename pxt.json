@@ -8,8 +8,6 @@
     },
     "files": [
         "README.md",
-        "main.blocks",
-        "main.ts",
         "bitoperation.ts",
         "meidea.ts",
         "airmate.ts"
