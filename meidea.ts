@@ -73,15 +73,26 @@ namespace meidea_ir{
     let waitCorrection=0;
     let irsend_Pin=AnalogPin.P1;
     // 识别码
-    let NEC_L_MARK = 4400;
-    let NEC_L_MARK_SPACE = 4400;
+    let NEC_L_MARK_ORG = 4400;
+    let NEC_L_MARK_SPACE_ORG = 4400;
     // 分隔码
-    let NEC_S_MARK = 540;
-    let NEC_S_MARK_SPACE = 5220;
+    let NEC_S_MARK_ORG = 540;
+    let NEC_S_MARK_SPACE_ORG = 5220;
     // 逻辑数字 1、0
-    let NEC_BIT_MARK = 540;
-    let NEC_HIGH_SPACE = 1620;
-    let NEC_LOW_SPACE = 540;
+    let NEC_BIT_MARK_ORG = 540;
+    let NEC_HIGH_SPACE_ORG = 1620;
+    let NEC_LOW_SPACE_ORG = 540;
+
+    // 识别码
+    let NEC_L_MARK = NEC_L_MARK_ORG;
+    let NEC_L_MARK_SPACE = NEC_L_MARK_SPACE_ORG;
+    // 分隔码
+    let NEC_S_MARK = NEC_S_MARK_ORG;
+    let NEC_S_MARK_SPACE = NEC_S_MARK_SPACE_ORG;
+    // 逻辑数字 1、0
+    let NEC_BIT_MARK = NEC_BIT_MARK_ORG;
+    let NEC_HIGH_SPACE = NEC_HIGH_SPACE_ORG;
+    let NEC_LOW_SPACE = NEC_LOW_SPACE_ORG;
 
     /**
     * 返回定时开机码
@@ -160,13 +171,13 @@ namespace meidea_ir{
         let end = input.runningTimeMicros();
         waitCorrection = Math.idiv(end - start - runs * 2, runs * 2);
         //basic.showNumber(waitCorrection);
-        NEC_L_MARK -= waitCorrection;
-        NEC_L_MARK_SPACE -= waitCorrection;
-        NEC_S_MARK -= waitCorrection;
-        NEC_S_MARK_SPACE -= waitCorrection;
-        NEC_BIT_MARK -= waitCorrection;
-        NEC_HIGH_SPACE -= waitCorrection;
-        NEC_LOW_SPACE -= waitCorrection;    
+        NEC_L_MARK = NEC_L_MARK_ORG - waitCorrection;
+        NEC_L_MARK_SPACE = NEC_L_MARK_SPACE_ORG - waitCorrection;
+        NEC_S_MARK = NEC_S_MARK_ORG - waitCorrection;
+        NEC_S_MARK_SPACE = NEC_S_MARK_SPACE_ORG -waitCorrection;
+        NEC_BIT_MARK = NEC_BIT_MARK_ORG -waitCorrection;
+        NEC_HIGH_SPACE =NEC_HIGH_SPACE_ORG - waitCorrection;
+        NEC_LOW_SPACE =NEC_LOW_SPACE_ORG - waitCorrection;    
       }
     
     function transmitBit(highMicros: number, lowMicros: number): void {
