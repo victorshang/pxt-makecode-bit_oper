@@ -284,16 +284,16 @@ namespace meideaAC_ir{
 }
 
 
-enum funCode_code{
-    fun_OpenClose=0xC3F,
-    fun_Function=0x609F,
-    fun_Plus=0xB04F,
-    fun_Minus=0x8877,
-    fun_ShakeHead=0xC837,
+enum fanCode_code{
+    fan_OpenClose=0xC3F,
+    fan_Function=0x609F,
+    fan_Plus=0xB04F,
+    fan_Minus=0x8877,
+    fan_ShakeHead=0xC837,
 }
 
 //% color=#c86476 icon="\u2745" block="MeideaFun"
-namespace meideaFun_ir{   
+namespace meideaFan_ir{   
     let waitCorrection=0;
     let irsend_Pin=AnalogPin.P1;
     // 识别码
@@ -317,7 +317,7 @@ namespace meideaFun_ir{
     * 返回功能码
     */
     //% block="%mode"
-    export function getFunMode(mode:funCode_code):number{
+    export function getFanMode(mode:fanCode_code):number{
         return mode
     }
     /**
