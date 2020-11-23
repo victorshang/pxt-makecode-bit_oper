@@ -37,6 +37,7 @@ enum tmp_code {
     T30=11,
     Tundef=14,
 }
+
 enum minute_code{
     m_00=0,
     m_30=2
@@ -68,8 +69,9 @@ enum hour_code {
     h_24=95,
 }
 
+
 //% color=#6476c8 icon="\u2744" block="Meidea"
-namespace meidea_ir{   
+namespace meideaAC_ir{   
     let waitCorrection=0;
     let irsend_Pin=AnalogPin.P1;
     // 识别码
@@ -267,6 +269,135 @@ namespace meidea_ir{
         LCode()
         for(let j=0;j<3;j++){
             let data=data_arr[j]
+            for(let i=0;i<len;i++){
+                if (( data & mask)==0){
+                    ZERO()
+                }else{
+                    ONE()
+                }
+                mask=mask >> 1
+            }
+            mask=0x8000
+        }
+        EndCode()
+    }
+}
+
+
+enum funCode_code{
+    fun_OpenClose=0xC3F,
+    fun_Function=0x609F,
+    fun_Plus=0xB04F,
+    fun_Minus=0x8877,
+    fun_ShakeHead=0xC837,
+}
+
+//% color=#c86476 icon="\u2745" block="MeideaFun"
+namespace meideaFun_ir{   
+    let waitCorrection=0;
+    let irsend_Pin=AnalogPin.P1;
+    // 识别码
+    let NEC_L_MARK_ORG = 8900;
+    let NEC_L_MARK_SPACE_ORG = 4400;
+    
+    // 逻辑数字 1、0
+    let NEC_BIT_MARK_ORG = 540;
+    let NEC_HIGH_SPACE_ORG = 1620;
+    let NEC_LOW_SPACE_ORG = 540;
+
+    // 识别码
+    let NEC_L_MARK = NEC_L_MARK_ORG;
+    let NEC_L_MARK_SPACE = NEC_L_MARK_SPACE_ORG;
+    // 逻辑数字 1、0
+    let NEC_BIT_MARK = NEC_BIT_MARK_ORG;
+    let NEC_HIGH_SPACE = NEC_HIGH_SPACE_ORG;
+    let NEC_LOW_SPACE = NEC_LOW_SPACE_ORG;
+
+    /**
+    * 返回功能码
+    */
+    //% block="%mode"
+    export function getFunMode(mode:funCode_code):number{
+        return mode
+    }
+    /**
+    * 初始化IR
+    */
+    //% block="初始化IR发射器引脚:%ir_pin=AnalogPin"
+    export function initIR(ir_pin:AnalogPin):void
+     // Measure the time we need for a minimal bit (analogWritePin and waitMicros)
+      {
+        irsend_Pin=ir_pin;
+        pins.analogWritePin(irsend_Pin, 0);
+        pins.analogSetPeriod(irsend_Pin, 26.315);
+        let runs = 32;
+        let start = input.runningTimeMicros();
+        for (let i = 0; i < runs; i++) {
+          transmitBit(1, 1);
+        }
+        let end = input.runningTimeMicros();
+        waitCorrection = Math.idiv(end - start - runs * 2, runs * 2);
+        //basic.showNumber(waitCorrection);
+        NEC_L_MARK = NEC_L_MARK_ORG - waitCorrection;
+        NEC_L_MARK_SPACE = NEC_L_MARK_SPACE_ORG - waitCorrection;
+        NEC_BIT_MARK = NEC_BIT_MARK_ORG -waitCorrection;
+        NEC_HIGH_SPACE =NEC_HIGH_SPACE_ORG - waitCorrection;
+        NEC_LOW_SPACE =NEC_LOW_SPACE_ORG - waitCorrection;    
+      }
+    
+    function transmitBit(highMicros: number, lowMicros: number): void {
+      pins.analogWritePin(irsend_Pin, 341);
+      control.waitMicros(highMicros);
+      pins.analogWritePin(irsend_Pin, 0);
+      control.waitMicros(lowMicros);
+    }
+
+    /**
+    * L码
+    */
+    function LCode(){
+       transmitBit(NEC_L_MARK, NEC_L_MARK_SPACE);
+    }
+    
+    /**
+    * E码
+    */
+    function EndCode(){
+         transmitBit(NEC_BIT_MARK, 2000);
+    }
+    /**
+    * 0
+    */
+    function ZERO() {
+        transmitBit(NEC_BIT_MARK, NEC_LOW_SPACE);
+    }
+    /**
+    * 1
+    */
+    function ONE() {
+        transmitBit(NEC_BIT_MARK, NEC_HIGH_SPACE);
+    }
+
+     /**
+    * 发送数据码
+    * 发送格式为： L码+数据码+S码+L码+数据码+E码
+    */
+    //% block="发送数据:%mode"
+    export function sendCode(mode:number){
+        let len = 16
+        let mask=0x8000
+        let data=0x807F
+        LCode()
+        for(let i=0;i<len;i++){
+            if (( data & mask)==0){
+                ZERO()
+            }else{
+                ONE()
+            }
+            mask=mask >> 1
+        }      
+        for(let j=0;j<2;j++){
+            data=mode
             for(let i=0;i<len;i++){
                 if (( data & mask)==0){
                     ZERO()
