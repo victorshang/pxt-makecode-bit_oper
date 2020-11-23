@@ -292,7 +292,7 @@ enum fanCode_code{
     fan_ShakeHead=0xC837,
 }
 
-//% color=#c86476 icon="\u2745" block="MeideaFun"
+//% color=#c86476 icon="\u2745" block="MeideaFan"
 namespace meideaFan_ir{   
     let waitCorrection=0;
     let irsend_Pin=AnalogPin.P1;
