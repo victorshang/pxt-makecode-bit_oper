@@ -395,8 +395,9 @@ namespace meideaFan_ir{
                 ONE()
             }
             mask=mask >> 1
-        }      
+        } 
         for(let j=0;j<2;j++){
+            mask=0x8000
             data=mode
             for(let i=0;i<len;i++){
                 if (( data & mask)==0){
