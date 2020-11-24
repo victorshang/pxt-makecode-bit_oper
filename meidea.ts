@@ -285,7 +285,7 @@ namespace meideaAC_ir{
 
 
 enum fanCode_code{
-    fan_OpenClose=0xC3F,
+    fan_OpenClose=0xC03F,
     fan_Function=0x609F,
     fan_Plus=0xB04F,
     fan_Minus=0x8877,
