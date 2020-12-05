@@ -21,7 +21,7 @@ namespace airmate_ir{
     let L_MARK = 2500
     let L_MARK_SPACE = 3200;
     // 分隔码
-    let S_MARK = 4500;
+    let S_MARK = 450;
     let S_MARK_SPACE = 6800;
     // 逻辑数字 1
     let ONE_MARK = 450;
@@ -98,32 +98,23 @@ namespace airmate_ir{
 
      /**
     * 发送数据码
-    * 发送格式为： L码+数据码+S码+数据码+E码
+    * 发送格式为： L码+数据码+S码+L码+数据码+S码+L码+数据码+S码
     */
     //% block="发送数据:%data_str"
     export function sendCode(data:fan_code){
         let len = 16
-        LCode()
-        let mask=0x8000
-        for(let i=0;i<len;i++){
-            if (( data & mask)==0){
-                ZERO()
-            }else{
-                ONE()
+        for(let j=0;j<3;j++){
+            LCode()
+            let mask=0x8000
+            for(let i=0;i<len;i++){
+                if (( data & mask)==0){
+                    ZERO()
+                }else{
+                    ONE()
+                }
+                mask=mask >> 1
             }
-            mask=mask >> 1
+            SCode()
         }
-        mask=0x8000
-        SCode()
-        for(let i=0;i<len;i++){
-            if (( data & mask)==0){
-                ZERO()
-            }else{
-                ONE()
-            }
-            mask=mask >> 1
-        }
-        mask=0x8000        
-        EndCode()
     }
 }
