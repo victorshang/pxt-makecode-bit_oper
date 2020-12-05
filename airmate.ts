@@ -18,17 +18,25 @@ namespace airmate_ir{
     let waitCorrection=0;
     let irsend_Pin=AnalogPin.P1;
     // 识别码
-    let L_MARK = 2500
-    let L_MARK_SPACE = 3200;
+    let L_MARK_ORG = 2500
+    let L_MARK = L_MARK_ORG
+    let L_MARK_SPACE_ORG = 3200;
+    let L_MARK_SPACE = L_MARK_SPACE_ORG;
     // 分隔码
-    let S_MARK = 450;
-    let S_MARK_SPACE = 6800;
+    let S_MARK_ORG = 450;
+    let S_MARK = S_MARK_ORG;
+    let S_MARK_SPACE_ORG = 6800;
+    let S_MARK_SPACE = S_MARK_SPACE_ORG;
     // 逻辑数字 1
-    let ONE_MARK = 450;
-    let ONE_SPACE = 1220;
+    let ONE_MARK_ORG = 450;
+    let ONE_MARK = ONE_MARK_ORG;
+    let ONE_SPACE_ORG = 1220;
+    let ONE_SPACE = ONE_SPACE_ORG;
     // 逻辑数字 0
-    let ZERO_MARK = 1220;
-    let ZERO_SPACE = 450;
+    let ZERO_MARK_ORG = 1220;
+    let ZERO_MARK = ZERO_MARK_ORG;
+    let ZERO_SPACE_ORG = 450;
+    let ZERO_SPACE = ZERO_SPACE_ORG;
     
     /**
     * 初始化IR
@@ -48,14 +56,14 @@ namespace airmate_ir{
         let end = input.runningTimeMicros();
         waitCorrection = Math.idiv(end - start - runs * 2, runs * 2);
         //basic.showNumber(waitCorrection);
-        L_MARK -= waitCorrection;
-        L_MARK_SPACE -= waitCorrection;
-        S_MARK -= waitCorrection;
-        S_MARK_SPACE -= waitCorrection;
-        ONE_MARK -= waitCorrection;
-        ONE_SPACE -= waitCorrection;
-        ZERO_MARK -= waitCorrection;
-        ZERO_SPACE -= waitCorrection;    
+        L_MARK = L_MARK_ORG-waitCorrection;
+        L_MARK_SPACE = L_MARK_SPACE_ORG-waitCorrection;
+        S_MARK = S_MARK_ORG-waitCorrection;
+        S_MARK_SPACE = S_MARK_SPACE_ORG - waitCorrection;
+        ONE_MARK = ONE_MARK_ORG-waitCorrection;
+        ONE_SPACE = ONE_SPACE_ORG-waitCorrection;
+        ZERO_MARK = ZERO_MARK_ORG-waitCorrection;
+        ZERO_SPACE = ZERO_SPACE_ORG-waitCorrection;    
       }
     
     function transmitBit(highMicros: number, lowMicros: number): void {
